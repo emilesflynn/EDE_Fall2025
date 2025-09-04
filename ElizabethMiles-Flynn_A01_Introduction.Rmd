@@ -2,6 +2,7 @@
 title: 'Assignment 1: Introduction'
 author: "Elizabeth Miles-Flynn"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
