@@ -32,19 +32,24 @@ This exercise accompanies the lessons/labs in Environmental Data Analytics on co
 
 ```{r basics 1}
 #1. 
-seq(1,55,5) #Generates a sequence of numbers from 1 to 55, increasing by fives. Resulting in the following: 1,6,11,16,21,26,31,26,41,46,51
+seq(1,55,5) #Generates a sequence of numbers from 1 to 55, increasing by fives.
+#Resulting in the following: 1,6,11,16,21,26,31,26,41,46,51
 Increases_by_Five <-seq(1,55,5) #Assign a name to the sequence
 
 #2. 
-# Summary statistics for both mean and median, putting "Increases_by_Five" within the parentheses, so that we only calculate values from the sequence provided.
+# Summary statistics for both mean and median, putting "Increases_by_Five" within the parentheses
+# so that we only calculate values from the sequence provided.
 mean(Increases_by_Five)
 mean_value <-mean(Increases_by_Five) #Assign a name to the mean value
 median(Increases_by_Five)
 median_value <-median(Increases_by_Five) #Assign a name to the median value
 
 #3. 
-#use assigned names for both mean_value and median_value, so that we can create a conditional statement
-mean_value > median_value #when you run this line, R will provide a "false" conclusion for the conditional statement because the mean and median have the same value of 26.
+#use assigned names for both mean_value and median_value
+#so that we can create a conditional statement
+mean_value > median_value #when you run this line, R will provide a "false" conclusion
+#for the conditional statement because the mean 
+#and median have the same value of 26.
 ```
 
 ## Basics, Part 2
@@ -77,11 +82,13 @@ df_vector2 <- as.data.frame(vector2)
 df_vector3 <- as.data.frame(vector3)
 
 #combining all vectors into a singular data frame, assigning an informative name
-Academic_Performance_By_Scholarship_Status <-cbind(df_vector1,df_vector2,df_vector3)
+Academic_Performance_By_Scholarship_Status <-
+  cbind(df_vector1,df_vector2,df_vector3)
 class(Academic_Performance_By_Scholarship_Status)
 
 #Change labels for each column with informative names
-colnames(Academic_Performance_By_Scholarship_Status) <- c("Student_Name","Test_Score","Own_Scholarship")
+colnames(Academic_Performance_By_Scholarship_Status) <-
+  c("Student_Name","Test_Score","Own_Scholarship")
 ```
 
 9.  QUESTION: How is this data frame different from a matrix?
@@ -98,22 +105,27 @@ colnames(Academic_Performance_By_Scholarship_Status) <- c("Student_Name","Test_S
 
 ```{r basics 3}
 #10. Create a function using if...else
-
+pass_if <- function(Test_Score) {if(Test_Score>50) {"Pass"} else {"Fail"}}
 
 #11. Create a function using ifelse()
+pass_ifelse <- function(Test_Score) {ifelse(Test_Score>50,"Pass","Fail")}
 
 #12a. Run the first function with the value 52.5
+pass_if(52.5)
 
 #12b. Run the second function with the value 52.5
+pass_ifelse(52.5)
 
 #13a. Run the first function with the vector of test scores
+#pass_if(vector2)
 
 #13b. Run the second function with the vector of test scores
+pass_ifelse(vector2)
 ```
 
 14. QUESTION: Which option of `if`...`else` vs. `ifelse` worked? Why? (Hint: search the web for "R vectorization")
 
-> Answer:
+> Answer: ifelse worked for running the vector2 values and outputting results to showcase whether or not the test scores are "passing" grades. Only ifelse is capable of applying the conditional operation "if" to an entire vector data, meaning that ifelse can run the condition statement for all values within vector 2 for Test Scores. if...else did not work because it can only test one value's logical condition at a time. Since there are four components in the "Test_Scores" (vector2), the multiple values caused an "error" in R. 
 
 
 **NOTE** Before knitting, you'll need to comment out the call to the function in Q13 that does not work. (A document can't knit if the code it contains causes an error!)
