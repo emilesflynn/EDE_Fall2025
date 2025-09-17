@@ -92,8 +92,8 @@ median(5, 4, 6, 4, 6)
 # Conditional statements
 4 > 5
 4 < 5
-4 != 5
-4 == 5
+4 != 5 #equality sign, "four different than five?" compare numbers
+4 == 5 #equality sign? "four equal five?" needs two equal signs
 
 ```
 
@@ -104,7 +104,7 @@ You can create R objects with an *assignment* statement. The indicator for an as
 A quick note: in many situations, a `=` sign will substitute for a `<-`. Resist this temptation! This will be confusing later, when `=` means something else.
 
 ```{r}
-x <- 3*4
+x <- 3*4 #assignment symbol (object name)"<-"(value)... the result goes to the environment tab
 ```
 
 Now, call up the object `x`. Notice that `x` has also just shown up in your Environment tab.
@@ -126,7 +126,7 @@ Run the first line of code below. Then, type in "long" and press `tab`. What hap
 What happens if there is a typo in your code? Type the following in the R window: Long_name_for_illustration longnameforillustration
 
 ```{r}
-long_name_for_illustration <- 11
+long_name_for_illustration <- 11 #tab key on keyboard will complete name for the object "code chunk name" for you... save time!
 
 ```
 
@@ -145,11 +145,11 @@ Within your R code, it is often useful to include notes about your workflow. So 
 R functions are the major tool used in R. Functions can do virtually unlimited things within the R universe, but each function requires specific inputs that are provided under specific syntax. We will start with a simple function that is built into R, `seq`
 
 ```{r}
-seq(1, 10)
+seq(1, 10) #seqencing: creates a list of all values between the (start value, end value)
 ten_sequence <- seq(1, 10)
 ten_sequence
 
-seq(1, 10, 2) # from, to, by
+seq(1, 10, 2) # from, to, by "adds values by +2"
 ```
 
 The basic form of a function is `functionname()`, and the packages we will use in this class will use these basic forms. However, there may be situations when you will want to create your own function. Below is a description of how to write functions through the metaphor of creating a recipe (credit: @IsabellaGhement on Twitter).
@@ -160,6 +160,11 @@ Writing a function is like writing a recipe. Your function will need a recipe na
 functionname <- function(){
   
 }
+
+#functionname = object name
+#<-function=create function
+#()=ingredients
+#{}=steps, what to do/perform
 ```
 
 A single ingredient recipe:
@@ -170,6 +175,7 @@ recipe1 <- function(x){
   mix <- x*2
   return(mix)
 }
+#"return"=how to display output of code
 
 # Bake the recipe
 simplemeal <- recipe1(5)
@@ -204,7 +210,7 @@ recipe3 <- function(x, f){
 
 doublecomplexmeal <- recipe3(x = 5, f = 2)
 doublecomplexmeal
-doublecomplexmeal$mix1
+doublecomplexmeal$mix1 #$=extracts object or step from the code
 ```
 
 Make a recipe based on the ingredients you have
@@ -214,7 +220,7 @@ recipe4 <- function(x) {
   if(x < 3) {
     x*2
   } 
-  else {
+  else { #else=not if
     x/2
   }
 }
@@ -223,7 +229,7 @@ recipe5 <- function(x) {
   if(x < 3) {
     x*2
   } 
-  else if (x > 3) {
+  else if (x > 3) { #multiple statements, else if... etc
     x/2
   }
   else {
