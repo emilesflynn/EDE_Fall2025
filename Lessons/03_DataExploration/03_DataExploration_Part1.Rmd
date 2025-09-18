@@ -96,6 +96,8 @@ Instead, we will use the `here` package, which was developed to overcome this ve
 Thus, you'll want to include the following command, also early on in your RMarkdown document to reveal 
 
 ```{r Setup: Configure working directory}
+#file location is the "absolute pathway" on your computer VS "relative path" is pointing to a file considering where you are right now (ex. start at working directory to someplace else)
+
 #Use getwd() to reveal what R sees as the working directory
 getwd()
 
@@ -175,13 +177,14 @@ Take a moment to read through the README file associated with the USGS dataset o
 Next, have a look at your dataset. Browse your data in RStudio's viewer. Have a look at the structure of your data. Consider renaming columns. 
 
 ```{r Exploring data}
-View(USGS.flow.data)
+##View(USGS.flow.data) #COMMENT OUT THIS WHEN KNITTING!!!
 # Alternate option: click on data frame in Environment tab
 
-class(USGS.flow.data)
-colnames(USGS.flow.data)
+class(USGS.flow.data) #what type of variable is the (variable)
+colnames(USGS.flow.data) #column names, only "names" works too
+names(USGS.flow.data)
 
-# Rename columns
+# Rename columns (vector with a bunch of strings, names found in metadata!)
 colnames(USGS.flow.data) <- c("agency_cd", "site_no", "datetime", 
                               "discharge.max", "discharge.max.approval", 
                               "discharge.min", "discharge.min.approval", 
@@ -189,20 +192,21 @@ colnames(USGS.flow.data) <- c("agency_cd", "site_no", "datetime",
                               "gage.height.max", "gage.height.max.approval", 
                               "gage.height.min", "gage.height.min.approval", 
                               "gage.height.mean", "gage.height.mean.approval")
-str(USGS.flow.data)
-dim(USGS.flow.data)
-length(USGS.flow.data)
+str(USGS.flow.data) #structure, show size of dataframe (#obs, #rows, understand data types)
+##glimpse(USGS.flow.data) #^same as str, tidyverse version
+dim(USGS.flow.data) #dimension (#rows, columns)
+length(USGS.flow.data) #of columns
 
-head(USGS.flow.data)
+head(USGS.flow.data) #provide (default) first 5 records of each column
 head(USGS.flow.data, 10)
 tail(USGS.flow.data, 5)
-USGS.flow.data[30000:30005, c(3, 8, 14)]
+USGS.flow.data[30000:30005, c(3, 8, 14)] #(3000:3005)=matrix notation to look at selected rows AND selected rows "c(3,8,14)
 
-class(USGS.flow.data$datetime)
+class(USGS.flow.data$datetime) #specific columns
 class(USGS.flow.data$discharge.mean)
 class(USGS.flow.data$gage.height.mean)
 
-summary(USGS.flow.data)  #could point to column only with $
+summary(USGS.flow.data)  #could point to column only with $, summary stats only for numeric columns
 
 ```
 
@@ -214,15 +218,15 @@ What happened to blank cells in the spreadsheet when they were imported into R?
 Notice in our dataset that our discharge and gage height observations have many NAs, meaning no measurement was recorded for a specific day. In some cases, it might be in our best interest to remove NAs from a dataset. Removing NAs or not will depend on your research question.
 
 ```{r Finding NAs}
-summary(USGS.flow.data$discharge.mean)
+summary(USGS.flow.data$discharge.mean) #shows that 51000 rows are missing "NA"s
 summary(USGS.flow.data$gage.height.mean)
 ```
 Question: What types of research questions might make it favorable to remove NAs from a dataset, and what types of research questions might make it favorable to retain NAs in the dataset?
 
-> Answer: 
+> Answer: choose to omit columns or row, leave the data as is, assign a value
 
 ```{r Removing NAs}
-USGS.flow.data.complete <- na.omit(USGS.flow.data)
+USGS.flow.data.complete <- na.omit(USGS.flow.data) #NA omit command
 dim(USGS.flow.data)
 dim(USGS.flow.data.complete)
 
@@ -247,7 +251,7 @@ With the `read.csv()`, R guesses at a columns data type by looking at the values
 The code chunk below shows how we coerce R to set `site_no` to be a *factor*, not an integer. 
 
 ```{r}
-USGS.flow.data$site_no <- as.factor(USGS.flow.data$site_no)
+USGS.flow.data$site_no <- as.factor(USGS.flow.data$site_no) #make site number, a interger, into a factor variable type
 str(USGS.flow.data)
 ```
 
@@ -257,6 +261,7 @@ Alternatively, we can tell R to import it as a factor when we read the data in
 USGS.flow.data2  <- read.csv(
   file = here("./Data/Raw/USGS_Site02085000_Flow_Raw.csv"),
   stringsAsFactors = TRUE) 
+  colClasses = c('site_no'='factor') #override R default column variable type settings to your choosen one
 ```
 
 
@@ -278,6 +283,7 @@ Formatting of dates in R:
 In some cases when dates are provided as integers, you may need to provide an origin for your dates. Beware: the "origin" date for Excel (Windows), Excel (Mac), R, and MATLAB all have different origin dates. Google this if it comes up.
 
 ```{r Date formats}
+#default R settings for date is a character, we want to specify a numerical variable type so that R can calulate or develop codes for Time Series and etc.
 help(as.Date)
 
 # Adjust date formatting [to be done in lab session]
@@ -285,19 +291,21 @@ help(as.Date)
 # An example is provided to get you started.
 # (code must be uncommented)
 today <- Sys.Date()
-format(today, format = "%B")
+format(today, format = "%B") #"%B" shows the month associated in the choosen date format
 #format(today, format = "")
 #format(today, format = "")
 #format(today, format = "")
 
 USGS.flow.data$datetime <- as.Date(USGS.flow.data$datetime, format = "%m/%d/%y") 
+#"as.Date" converts a string to a date object, to all strings, and then specify format wanted
+#note: the first data record, "USGS.flow.data$datetime[1]" is [1] "2027-10-01" which is not a reasonable record (future???)
 ```
 
 Note that for every date prior to 1969, R has assigned the date in the 2000s rather than the 1900s. This can be fixed with an `ifelse` statement inside a function. Run through the code below and write what is happening in the comment above each line.
 
 ```{r Fixing dates}
 # 
-USGS.flow.data$datetime <- format(USGS.flow.data$datetime, "%y%m%d")
+USGS.flow.data$datetime <- format(USGS.flow.data$datetime, "%y%m%d") #convert back into a string
 
 #
 create.early.dates <- (function(d) {
