@@ -96,7 +96,7 @@ Instead, we will use the `here` package, which was developed to overcome this ve
 Thus, you'll want to include the following command, also early on in your RMarkdown document to reveal 
 
 ```{r Setup: Configure working directory}
-#file location is the "absolute pathway" on your computer VS "relative path" is pointing to a file considering where you are right now (ex. start at working directory to someplace else)
+#file location is the "absolute pathway"(P:///.csv) on your computer VS "relative path" (C:.//.csv) is pointing to a file considering where you are right now (ex. start at working directory to someplace else)
 
 #Use getwd() to reveal what R sees as the working directory
 getwd()
