@@ -16,7 +16,7 @@ output: pdf_document
 
 Why is data exploration our first step in analyzing a dataset? What information do we gain? How does data exploration aid in our decision-making for data analysis steps further down the pipeline?
 
->Answer: 
+>Answer: It allows us to understand what tools we are using to better communicate and troubleshoot our findings. 
 
 ---
 
@@ -25,11 +25,19 @@ Why is data exploration our first step in analyzing a dataset? What information 
 ```{r, Setup-Import-Explore, message = FALSE}
 ## -Set up-
 # 1. Load packages (tidyverse, here)
+library(tidyverse)
+library(here)
 
 # 2. Check the working directory
+getwd() #check working directory
+here() #confirm that we are working in the project directory
 
 # 3. Import datasets
-
+USGS.flow.data <-read.csv(
+  file = here('Data/Processed/USGS_Site02085000_Flow_Processed.csv'),
+  stringsAsFactors = 
+)
+  
 ## -Initial Exploration-
 
 #View(USGS.flow.data)

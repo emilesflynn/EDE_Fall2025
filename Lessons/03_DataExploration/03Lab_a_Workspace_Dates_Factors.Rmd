@@ -36,6 +36,7 @@ And thus we introduce the `here` package, designed to streamline this process. A
  - Github repo: https://github.com/jennybc/here_here
  
 ```{r The here package}
+##here guarantees that you create a relative pathway to your files. 
 #install.packages('here')
 library(here) #Note this package may conflict with plyr and lubridate
 
@@ -79,11 +80,25 @@ print(filenames)
 ```{r here in action}
 
 # 1. Read the 'NTL-LTER_Lake_ChemistryPhysics_Raw.csv' into a dataframe
-
+here()
+NTL_LTER <-read.csv(
+  file = here('./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv'),
+  stringsAsFactors = TRUE
+)
+print(NTL_LTER)
 
 # 2.
 library(tidyverse);library(here)
+#Read in all CSV files starting with "EPAair_03" into a single dataframe
+folder <-here('Data','Raw')
+files1 <- dir(folder, pattern = "EPAair_O3_NC2018_raw.csv", full.names = TRUE)
+files2 <-dir(folder, pattern = "EPAair_O3_NC2019_raw.csv", full.names = TRUE)
 
+files <- c(files1, files2)
+
+EPAData <- files %>%
+  map(read.csv) %>%
+  bind_rows()
 ```
 
 ---
@@ -133,6 +148,8 @@ date_obj_today
 
 #Ex_3 - on your own...
 str_juneteenth <- "19 June 1865"
+date_juneteenth <- dmy(str_juneteenth)
+date_juneteenth
 #date_juneteenth <- ()
 #date_juneteenth
 ```
