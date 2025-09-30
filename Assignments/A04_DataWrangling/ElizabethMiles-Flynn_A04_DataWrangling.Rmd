@@ -232,5 +232,5 @@ dim(EPA.Sum)
 
 14. Why did we use the function `drop_na` rather than `na.omit`? Hint: replace `drop_na` with `na.omit` in part 12 and observe what happens with the dimensions of the summary date frame.
 
-> Answer: drop_na() function removes rows only where Mean_Ozone values are "NA" or missing (EPA.Summary dimensions are 239,5). While na.omit() function removes any row with "NA" cells from ALL columns even when you specify a single column like Mean_Ozone within the parenthesis (EPA.Sum dimensions are 111, 5). 
+> Answer: drop_na() function removes rows only where Mean_Ozone values are "NA" or missing, leaving "NA" cell values under other columns like MEAN_PM25 (EPA.Summary dimensions are 239,5). While na.omit() function removes any row with "NA" cells from ALL columns even when you specify a single column like Mean_Ozone within the parenthesis (EPA.Sum dimensions are 111, 5). 
 
