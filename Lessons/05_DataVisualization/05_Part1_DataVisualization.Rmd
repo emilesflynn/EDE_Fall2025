@@ -148,8 +148,9 @@ lightvsDO <-
   ggplot(PeterPaul.chem.nutrients, aes(x = irradianceWater, y = dissolvedOxygen)) +
   geom_point()
 print(lightvsDO)
+##there are two outliers on map, therefore need to adjust axis (since all clustered in bottom left)
 
-# Adjust axes
+# Adjust axes ##(min,max value ranges)
 lightvsDOfixed <- 
   ggplot(PeterPaul.chem.nutrients, aes(x = irradianceWater, y = dissolvedOxygen)) +
   geom_point() +
@@ -158,6 +159,7 @@ lightvsDOfixed <-
 print(lightvsDOfixed)
 
 # Depth in the fields of limnology and oceanography is on a reverse scale
+##scale_y_reverse: put zero on top
 tempvsdepth <- 
   ggplot(PeterPaul.chem.nutrients, aes(x = temperature_C, y = depth)) +
   #ggplot(PeterPaul.chem.nutrients, aes(x = temperature_C, y = depth, color = daynum)) +
@@ -165,6 +167,8 @@ tempvsdepth <-
   scale_y_reverse()
 print(tempvsdepth)
 
+##geom_smooth: (method line = "lm" linear), to add trendline of best fit
+##add another line w/ geom_abline to customize trendline
 NvsP <-
   ggplot(PeterPaul.chem.nutrients, aes(x = tp_ug, y = tn_ug, color = depth)) +
   geom_point() +
@@ -183,10 +187,13 @@ What might be more effective ways to display the information? Navigate to the bo
 # Box and whiskers plot
 Nutrientplot3 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
-  geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"?
+  geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"? 
+##COLOR regards to the contour of the shape and FILL is the shape filling
 print(Nutrientplot3)
 
 # Dot plot
+##geom_dotplot: see first, second, third of values
+##binaxis (stack observatins over y), binwidth (set of beam), stackdir (stack in center position), position = dodge (no overlaps)
 Nutrientplot4 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
   geom_dotplot(aes(color = nutrient, fill = nutrient), binaxis = "y", binwidth = 1, 
