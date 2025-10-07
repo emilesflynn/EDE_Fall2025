@@ -185,6 +185,16 @@ What might be more effective ways to display the information? Navigate to the bo
 
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
 # Box and whiskers plot
+NTLLTER <- NTLLTER %>%
+  mutate(
+month_name = factor(month(date),
+                     levels = 1:12,
+                     labels = month.abb,
+                     ordered = TRUE)
+  )
+
+ggplot(df, aes(x = month_f, y = tp_ug)) +
+  geom_boxplot()
 Nutrientplot3 <-
   ggplot(PeterPaul.chem.nutrients.gathered, aes(x = lakename, y = concentration)) +
   geom_boxplot(aes(color = nutrient)) # Why didn't we use "fill"? 
