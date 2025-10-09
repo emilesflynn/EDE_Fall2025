@@ -1,0 +1,25 @@
+---
+title: Interactive Rmd
+output: html_document
+runtime: shiny
+>instructions "runtime:shiny", that doesn't allow 
+---
+  
+```{r, echo = FALSE}
+##different widget that allows for us to interact with called the "interactive interface"
+numericInput("n",
+"How many cars?", 5)
+
+##code that is listening to any changes, run (execute the head demand for cars)
+##"input$n" is the number of cars
+renderTable({
+head(cars, input$n)
+})
+
+numericInput("my_widget",
+"How many cars?", 5)
+renderTable({
+head(cars, input$my_widget)
+})
+```
+
