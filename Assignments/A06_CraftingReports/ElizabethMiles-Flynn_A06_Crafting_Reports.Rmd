@@ -3,6 +3,8 @@ title: 'A06 - Crafting Reports'
 author: "Elizabeth Miles-Flynn" 
 date: "Fall 2025"
 output: pdf_document
+toc: TRUE
+lof: TRUE
 ---
 
 ## Objectives:
@@ -43,7 +45,7 @@ Table: EPA Air Quality
 
 Set the following R code chunk so that it runs when knit, but no messages, errors, or any output is shown. The code itself, however, should be displayed.
 
-```{r project.setup, echo=TRUE,results='hide'}
+```{r project.setup, echo=TRUE, message=FALSE, results='hide'}
 #Import libraries
 library(tidyverse)
 library(lubridate)
@@ -76,7 +78,7 @@ Customize the chunk options such that the code is run but is not displayed in th
 > -   If your output table spans across two pages, try inserting a page break in the markdown just before your code chunk.
 
 
-```{r data.summary}
+```{r data.summary, echo=FALSE}
 #Compute mean PM2.5 concentration for each county, sorted by value
 summary_PM25 <- epa_data %>% 
   drop_na(PM2.5) %>% 
@@ -93,7 +95,14 @@ summary_Ozone <- epa_data %>%
   arrange(mean_Ozone)
 
 #Use the `kable` function to produce the 2 tables in markdown format
-
+ knitr::kable(summary_PM25,
+              caption = "Table 2: Mean Particulates (2.5mm)",
+              col.names = c("County", "$\\mu g/m^3$"),
+              digits = 2)
+ knitr::kable(summary_Ozone,
+              caption = "Table 3: Mean Ozone",
+              col.names = c("County", "$\\mu g/m^3$"),
+              digits = 2)
 ```
 
 ---
@@ -102,6 +111,49 @@ summary_Ozone <- epa_data %>%
 
 Below this paragraph, but above the horizonal line (`---`), create two separate code chunks that create boxplots of the distribution of Ozone levels by month using, one for only records collected in 2018 and one for records in 2019. Customize the chunk options such that the final figures are displayed but not the code used to generate the figures. In addition, align the plots on the left side of the page and set the figure heights so both plots fit on the same page with minimal space remaining. Lastly, add a `fig.cap` chunk option to add a caption (title) to your plot that will display underneath the figure.
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='left', fig.cap='2018 Monthly Ozone Levels', fig.height=3}
+
+epa_data$Date <- ymd(epa_data$Date)
+
+epa_data.2018 <- epa_data %>%
+  filter(year(Date) == 2018) %>%
+    mutate(
+    Month = factor(
+      month(Date),
+      levels = 1:12,
+      labels = month.abb,
+      ordered = TRUE)) %>%
+  drop_na(Ozone)
+
+  ggplot(epa_data.2018, aes(x = Month, y = Ozone)) +
+    geom_boxplot() +
+  labs(
+    title = '2018 Monthly Ozone Levels',
+    x = 'Month',
+    y = 'Ozone Concentration (µg/m³)'
+    )
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='left', fig.cap='2018 Monthly Ozone Levels', fig.height=3}
+epa_data.2019 <- epa_data %>%
+  filter(year(Date) == 2019) %>%
+    mutate(
+    Month = factor(
+      month(Date),
+      levels = 1:12,
+      labels = month.abb,
+      ordered = TRUE)) %>%
+  drop_na(Ozone)
+
+  ggplot(epa_data.2019, aes(x = Month, y = Ozone)) +
+    geom_boxplot() +
+  labs(
+    title = '2019 Monthly Ozone Levels',
+    x = 'Month',
+    y = 'Ozone Concentration (µg/m³)'
+    )
+```
 
 ---
 
@@ -109,6 +161,12 @@ Below this paragraph, but above the horizonal line (`---`), create two separate 
 
 ## Task 5: Knit and submit.
 
-Add a table of contents and list of figures to your document and knit to a PDF. Submit your PDF to Sakai, but also be sure to commit and push your Rmd file used to create this knit document to GitHub. In the section below, add a link to your GitHub repository. **Lastly, add the statement that you did not use AI in the completion of this assignment followed by your name and the date.** 
+Add a table of contents and list of figures to your document and knit to a PDF. Submit your PDF to Canvas, but also be sure to commit and push your Rmd file used to create this knit document to GitHub. In the section below, add a link to your GitHub repository. **Lastly, add the statement that you did not use AI in the completion of this assignment followed by your name and the date.** 
+
 
 ## Git Repository
+https://github.com/emilesflynn/EDE_Fall2025
+
+I did not use AI in the completion of this assignment.
+Elizabeth Miles-Flynn
+10/20/2025
