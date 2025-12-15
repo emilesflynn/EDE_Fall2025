@@ -70,7 +70,7 @@ epa_pm25_sites_sf <- read_csv(here('Data/Raw/EPAair_PM25_NC2018_raw.csv')) %>%
     meanPM = mean(`Daily Mean PM2.5 Concentration`,na.rm=T),
     maxPM = max(`Daily Mean PM2.5 Concentration`,na.rm=T)
     ) %>% 
-  st_as_sf(coords = c('SITE_LONGITUDE','SITE_LATITUDE'), crs=4269)
+  st_as_sf(coords = c('SITE_LONGITUDE','SITE_LATITUDE'), crs=4269) ###NAD83
 
 #Inspect the object
 class(epa_pm25_sites_sf)
@@ -81,6 +81,8 @@ st_crs(epa_pm25_sites_sf)$epsg
 #Plot the data
 ggplot(data=epa_pm25_sites_sf) +
   geom_sf()
+ggplot(data=epa_pm25_sites_sf) +
+geom_sf(aes(color=meanPM))
 ```
 
 ## 2.2 Reading shapefiles into R with `sf`
@@ -93,8 +95,10 @@ Below we read in the USA counties shapefile, filtering for just the NC features 
 
 ```{r read.filtered.records.from.shapefile.to.sf.object}
 #Read the shapefile into an sf dataframe named counties_sf, filtering for NC only
+###sf files include info on shape, projection, data, etc information
+###vs. GeoJSOn is a single, text-based file (more user friendly)
 counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
-  filter(STATEFP == 37) #Filter for just NC Counties
+  filter(STATEFP == 37) #Filter for just NC Counties, with 100 counties (therefore 100 obs)
 
 #Reveal the column names
 colnames(counties_sf)
@@ -106,7 +110,7 @@ st_crs(counties_sf)
 nrow(counties_sf)
 
 #Reveal the extent of this dataset via the st_bbox() function
-st_bbox(counties_sf)
+st_bbox(counties_sf) ###bounty box creates a rectangles around our dataset
 
 #Plot the data (by area of land)
 mapView(counties_sf)
@@ -244,11 +248,12 @@ svi2020_nc_raw <- read.csv(
   colClasses = c('FIPS' = 'factor')) %>% 
   select(COUNTY, FIPS, LOCATION, E_TOTPOP, E_POV150, E_MINRTY,
          RPL_THEME1,RPL_THEME2,RPL_THEME3,RPL_THEME4) 
+###E = estimate, M = Margin of Error, "POV150" 150% of poverty line, "RPL_THEME1" socioeconomic ranking (shown above markdown text)
 
 #Check structure
 glimpse(svi2020_nc_raw)
 
-#Join the SVI attributes to the county spatial features
+#Join the SVI attributes to the county spatial features "MERGE" (base R function version)
 counties_sf_join <-  merge(
   x = counties_sf,
   y = svi2020_nc_raw, 
@@ -258,14 +263,19 @@ counties_sf_join <-  merge(
 
 # -or-
 
-#Tidyverse version of the join
+#Tidyverse version of the join "LEFT_JOIN" (same output as merge)
 counties_sf_join <- counties_sf %>% 
   left_join(
     svi2020_nc_raw, 
     by = c("GEOID" = "FIPS") 
     )
 
-#View with mapview
+#View with mapview, visual analysis
+mapview(counties_sf_join,
+        zcol = 'E_POV150',
+        col.regions = brewer.pal(2, 'RdBu'))+
+  mapview(epa_pm25_sites_sf, cex = 'maxPM')
+
 mapview(counties_sf_join, 
         zcol = 'RPL_THEME1', 
         col.regions=list('red','blue')
@@ -274,7 +284,7 @@ mapview(counties_sf_join,
 
 #view with ggplot
 ggplot() + 
-  geom_sf(data=counties_sf_join,aes(fill = RPL_THEME1),alpha=0.5) + 
+  geom_sf(data=counties_sf_join,aes(fill = RPL_THEME1),alpha=0.5) + ###alpha = transparency
   scale_fill_gradient2(low="red",high="blue",midpoint = 0.5) + 
   geom_sf(data=epa_pm25_sites_sf) +
   labs(fill='Socio\nEcononomic\nIndex')
@@ -289,9 +299,9 @@ ggplot() +
 #Compute HUC8 wind energy
 wind_raw <- read.csv(
   'https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv',
-  colClasses = c('HUC_12'='factor')
+  colClasses = c('HUC_12'='factor') ###as factor
   ) %>%  
-  mutate(huc_8 = substr(HUC_12, 0, 8)) %>% 
+  mutate(huc_8 = substr(HUC_12, 0, 8)) %>%  #first 8 digits
   group_by(huc_8) %>% 
   summarize(
     WindEnergy = sum(AvgWindEnergy)
@@ -321,8 +331,8 @@ In our case, all of our county features share the same "STATEFP" value, so we'll
 ```{r Dissolve all counties into a single feature}
 #Aggregate the data using group_by and summarize, just as you would a non-spatial dataframe
 state_sf <- counties_sf %>% 
-  group_by('STATEFP') %>% 
-  summarize(ALAND = sum(ALAND))
+  group_by('STATEFP') %>%       ###combine 100 counties into 1 state boundary
+  summarize(ALAND = sum(ALAND)) ###sum of area of land
 
 #View the data
 mapview(state_sf)
@@ -331,10 +341,11 @@ mapview(state_sf)
 *Now you try*: Aggregate the HUC_8 data on the `DWQ_Basin` attribute, computing the sum of the `ACRES` field and view the result.
 
 ```{r Aggregate the HUC data on an attribute, saving as huc2_sf}
+mapview(huc8_sf, zcol="DWQ_Basin", legend = FALSE)
 #List the unique values in the DWQ_Basin field
 unique(huc8_sf$DWQ_Basin)
 
-#Summarize on DWQ Basin value
+#Summarize on DWQ Basin value, dissolve boundaries
 huc2_sf <- huc8_sf %>% 
   group_by(DWQ_Basin) %>% 
   summarize(
@@ -344,6 +355,8 @@ huc2_sf <- huc8_sf %>%
 #Map the data
 ggplot() + geom_sf(data=huc8_sf,aes(fill=ACRES))
 ggplot() + geom_sf(data=huc2_sf,aes(fill=ACRES))
+
+mapview(huc2_sf, zcol = 'ACRES')
 
 ```
 
@@ -369,6 +382,7 @@ On top of projecting any geographic data to adjust for the limitations of the so
 
 ```{r Transform the datasets to other coordinate reference systems}
 #Convert all to UTM Zone 17 (crs = 26917)
+###"st_transform" translates one coordinate reference system to another)
 epa_sf_utm <-      st_transform(epa_pm25_sites_sf, crs = 26917)
 counties_sf_utm <- st_transform(counties_sf, crs = 26917)
 state_sf_utm <-    st_transform(state_sf,crs = 26917)
@@ -398,20 +412,20 @@ myMap
 
 #Select intersecting counties using the `filter()` command
 neuse_intersect <- counties_sf_utm %>%  
-  st_filter(neuse_sf, .predicate = st_intersects)
+  st_filter(neuse_sf, .predicate = st_intersects) ###predicate shows what function
 
 #View the result
-myMap + mapview(neuse_intersect, alpha.regions = 0)
+myMap + mapview(neuse_intersect, alpha.regions = 0) ###shows what counties intersect with HUC Neuse
 
 #Actually intersect the counties (not just select those that intersect)
-neuse_counties_sf <- neuse_sf %>% st_intersection(counties_sf_utm)
+neuse_counties_sf <- neuse_sf %>% st_intersection(counties_sf_utm) ###cookie cutter, takes counties and mask it to the polygon HUC Neuse
 
 #View the result
 myMap + mapview(neuse_counties_sf, alpha.regions = 0)
 
 #Update the area the features, now that some are clipped
 neuse_counties_sf <- neuse_counties_sf %>% 
-  mutate(Area_m2 = as.numeric(st_area(neuse_counties_sf$geometry)))
+  mutate(Area_m2 = as.numeric(st_area(neuse_counties_sf$geometry))) ###calculate area with st_area
   
 mapview(neuse_counties_sf, zcol='Area_m2')
 
@@ -426,7 +440,7 @@ triCo <- counties_sf_utm %>%
 
   
 #Grab the intersecting HUC_8s
-huc8_sf_utm %>% st_filter(triCo) %>% mapview() 
+huc8_sf_utm %>% st_filter(triCo) %>% mapview() ###default is intersect under filter, unless changed with the precident function to select another tool
 
 
 #Intersect the HUC_8s
@@ -454,26 +468,27 @@ myMap
 triCo_centroids <-  st_centroid(triCo)
 myMap <- myMap + geom_sf(data = triCo_centroids, color = 'blue')
 myMap
+###manipulated the original geometeries (polygons) to a different one
 
 #Buffer the centroids outward 2km and add them to our
-triCo_centroids_2km <- st_buffer(triCo_centroids, 2000)
+triCo_centroids_2km <- st_buffer(triCo_centroids, 2000) ###buffer on geometric objects centroids
 myMap <- myMap + geom_sf(data = triCo_centroids_2km, color = 'orange', fill=NA)
 myMap
 
 #Buffer the counties inward 2km
-triCo_in2km <- st_buffer(triCo, -2000)
+triCo_in2km <- st_buffer(triCo, -2000) ### buffer inwards from county boundaries
 myMap <- myMap + geom_sf(data = triCo_in2km, color = 'green', fill=NA)
 myMap
 
 #Combine the centroids into one feature and construct a convex hull around them
 triCo_centroids_chull <- triCo_centroids %>% 
-  st_union() %>% 
+  st_union() %>% ###combine and not dissolve
   st_convex_hull()
 myMap <- myMap + geom_sf(data = triCo_centroids_chull, color = 'red', fill=NA)
 myMap
 
 #Combine the centroids into one feature and draw voronoi polygons
-triCo_centroids_voronoi <- triCo_centroids %>% 
+triCo_centroids_voronoi <- triCo_centroids %>%    ###ex. rain gauges, way to extrapolate areas
   st_union() %>%                                  ##puts in single feature
   st_voronoi()
 myMap <- myMap + geom_sf(data = triCo_centroids_voronoi, color = 'purple', fill=NA)
@@ -496,19 +511,20 @@ theSite_sfp <- st_point(c(userLng,userLat))
 #Create a simple features column from the point geometry object
 theSite_sfc <- st_sfc(theSite_sfp, crs = 4326)
 
-#Transform the mask to match the CRS of the counties dataset
+#Transform the mask to match the CRS of the counties dataset 
 theSite_sfc_transformed <- st_transform(theSite_sfc, crs = st_crs(counties_sf_utm))
 
 #Create a boolean mask 
 resultMask <- st_intersects(counties_sf_utm, 
                             theSite_sfc_transformed,
                             sparse = FALSE) #The `sparse` option returns a Boolean mask
+###True is the feature that intersects
 
 #Filter the counties dataset using the boolean mask
-selCounties <- counties_sf_utm[resultMask,]
+selCounties <- counties_sf_utm[resultMask,] ###return the one feature that is true
 
 #Map the results
-mapView(counties_sf[resultMask,])
+mapView(counties_sf[resultMask,]) ###durham county!
 
 ```
 
@@ -520,10 +536,8 @@ the_site_counties <- theSite_sfc_transformed %>%
 
 theSite_sfc_transformed_buffered = st_buffer(theSite_sfc_transformed, 30000)
 #create a boolean mask
-resultMask2 <- st_intersects(counties_sf_utm),
+resultMask2 <- st_intersects(counties_sf_utm)
 
-
-                            
 ```
 
 # 4. VISUALIZATION
@@ -542,7 +556,7 @@ ggplot()  +
   geom_sf(data = state_sf_utm, color='red',size=2) + 
   scale_fill_gradient(low="yellow", high="darkgreen")
 
-#Right order
+#Right order matters
 ggplot() +
   geom_sf(data = state_sf_utm, color='red',size=2) +
   geom_sf(data = counties_sf_utm, aes(fill = ALAND), color = 'white')  +
@@ -557,7 +571,7 @@ Leaflet is the most powerful of the three. However it requires getting all our d
 ### 4.2.1 Multiple layers in Leaflet
 
 ```{r transform.data.back.to.WSG84}
-# Convert all to WGS84 (crs=4326)
+# Convert all to WGS84 (crs=4326) ###back to a geographic coordinate sys
 EPAair_wgs84 <- st_transform(epa_pm25_sites_sf, c=4326)
 counties_WGS84 <- st_transform(counties_sf_utm, c=4326)
 state_WGS84 <- st_transform(state_sf,c=4326)
@@ -565,9 +579,10 @@ huc8s_WGS84 <- st_transform(huc8_sf,c=4326)
 huc2_WGS84<- st_transform(huc2_sf,c=4326)
 
 #Now plot with leaflet: no errors as all layers are in Leaflet's native CRS (WGS84)
-leaflet() %>% addTiles() %>% 
-  addPolygons(data=counties_WGS84,weight=1,color='red') %>% 
+leaflet() %>% addTiles() %>% ###basic leaflet map
+  addPolygons(data=counties_WGS84,weight=1,color='red') %>% ###adds counties
   addPolygons(data=huc8s_WGS84,weight=1)
+###creates a web map that we need to manually add attributes
 ```
 
 ### 4.2.2 Changing basemaps in Leaflet
@@ -576,7 +591,7 @@ Tip: See <http://leaflet-extras.github.io/leaflet-providers/> for other basemaps
 
 ```{r Visualizing multiple datasets with leaflet}
 leaflet() %>% 
-  addProviderTiles(providers$Esri.DeLorme) %>%  
+  addProviderTiles(providers$Esri.NatGeoWorldMap) %>%  ###changes world map
   addPolygons(data = counties_WGS84, 
               color = "orange", 
               weight = 1, 
@@ -601,7 +616,7 @@ m1 <- leaflet() %>%
               opacity = 1.0, fillOpacity = 0.5,
               fillColor = ~colorQuantile("YlOrRd", ALAND)(ALAND)) %>% 
   addMarkers(data=EPAair_wgs84,popup = ~as.character(`Site Name`))
-
+m1
 
 m2 <- leaflet() %>% 
   addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
@@ -611,6 +626,7 @@ m2 <- leaflet() %>%
                    stroke = FALSE, 
                    fillOpacity = 0.3,
                    popup = ~as.character(`Site Name`))
+m2
 
 #install.packages("leafsync")
 library(leafsync)

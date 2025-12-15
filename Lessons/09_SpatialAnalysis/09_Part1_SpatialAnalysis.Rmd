@@ -65,21 +65,22 @@ sf::sf_use_s2(FALSE)
 ```{r Read in road data}
 #Read the GeoJSON file into a spatial dataframe
 GasPlants <- st_read(here('Data/Spatial/Manufactured_Gas_Plant_Sites.geojson'))
+###similar to read_csv function but for spatial data format, shows metadata in console with geodetic CRS "coordinate reference system"
 
 #Explore as a typical dataframe
 class(GasPlants)
 glimpse(GasPlants)
-str(GasPlants$geometry)
+str(GasPlants$geometry) ###there is a geometry column in the dataset
 
 #Explore as a spatial dataframe...
 #View using sf plot
-plot(GasPlants['status'],pch=16)
+plot(GasPlants['status'],pch=16) ###select a column "status", A = active, I = inactive
 
 #View using ggplot
-ggplot(data=GasPlants) + geom_sf(aes(color=status))
+ggplot(data=GasPlants) + geom_sf(aes(color=status)) ###geom_sf in ggplot
 
 #View using mapview
-mapview(GasPlants, zcol='status')
+mapview(GasPlants, zcol='status') ###zcol = change colors based on status
 
 ```
 
@@ -99,9 +100,9 @@ These geometries represent features located in geographic space. (There are othe
 
 
 ## 2.2.2 Anatomy of a spatial dataframe
--   **Simple feature object (sf)**: the "spatial dataframe"
+-   **Simple feature object (sf)**: the entire "spatial dataframe"
 -   **Simple feature**: one row in the sf collection
--   **Simple feature column (sfc)**: the column containing geometries
+-   **Simple feature column (sfc)**: the column containing geometries or "geom"
 -   **Simple feature geometry (sfg)**: a single geometric object
 -   **Coordinate reference system (CRS)**: [more on this in a bit]
 
@@ -127,7 +128,7 @@ EPAair <- read.csv(
 EPAair.sites <- EPAair %>% 
   group_by(Site.Name, COUNTY, mean_Lat, mean_Lng) %>% 
   summarize(
-    mean_Ozone = mean(Ozone, na.rm=T), #What does "na.rm=T" do? Is it necessary?
+    mean_Ozone = mean(Ozone, na.rm=T), #What does "na.rm=T" do? Is it necessary? Ignore records with missing data "N/A"
     mean_PM25 = mean(PM2.5, na.rm=T),
     count_all = n(),                   #Adds a record count column
     count_Ozone = sum(!is.na(Ozone)),  #Counts the rows w/Ozone data
@@ -137,19 +138,19 @@ EPAair.sites <- EPAair %>%
 #Convert to a spatial dataframe
 EPAair.sf <- EPAair.sites %>% 
   st_as_sf(
-    coords = c('mean_Lng','mean_Lat'),
+    coords = c('mean_Lng','mean_Lat'), ###creates a geometry column, long E/W x-values, lat flat N/S y-values
     crs=4326
     )
 
 #Save locally as a shapefile 
 st_write(
-  EPAair.sf,
-  here("./Data/Processed/EPAair_sites.shp"),
+  EPAair.sf, ###name of spatial dataframe to save to files
+  here("./Data/Processed/EPAair_sites.shp"),  ###where to save in files
   driver='ESRI Shapefile'
   )
 
 #View the sf object using the methods above...
-
+mapview(EPAair.sf, cex="mean_PM25") ###cex sizes attributes
 ```
 
 
@@ -162,16 +163,16 @@ st_write(
 #First create a simple feature geometry object ("sfg")
 sfg_GraingerHall <- st_point(c(-78.9427,36.00465))
 class(sfg_GraingerHall)
-mapview(sfg_GraingerHall)
+mapview(sfg_GraingerHall) ###will plot but no idea on earth
 
 #Upgrade to a simple feature geometry column by adding a crs 
-sfc_GraingerHall <- st_sfc(sfg_GraingerHall,crs=4326)
+sfc_GraingerHall <- st_sfc(sfg_GraingerHall,crs=4326) ###add crs
 class(sfc_GraingerHall)
 mapview(sfc_GraingerHall)
 
 #Upgrade to a spatial dataframe
 sf_GraingerHall <- st_as_sf(sfc_GraingerHall)
-sf_GraingerHall$Name = 'Grainger Hall'
+sf_GraingerHall$Name = 'Grainger Hall' ###add attributes to the spatial dataframe
 mapview(sf_GraingerHall)
 
 ```
@@ -194,10 +195,11 @@ Let's explore:
 
 ```{r buffer Grainger hall}
 #Buffer Grainger Hall 1 unit
-the_buffer <- sf_GraingerHall %>% st_buffer(1)
-
+the_buffer <- sf_GraingerHall %>% st_buffer(1) ###buffer command expands outwards
+view(the_buffer)
 #View the result
-mapview(the_buffer)
+mapview(the_buffer) + mapview(sf_GraingerHall, color = 'red')
+###oval b/c geographically projected circle into a flat map... so show in google maps, it will look more like an even circle
 ```
 
 A bit odd, no? Why is the circle so big? What is the units of '1'? And why is it oval, not a circle? This has much to do with the fact that the geometric units of our feature are measured in angular units (degrees) and not familiar planar ones (like meters or feet). And that's because latitude and longitude measure location on a sphere, and we like doing calculations on a plane...
@@ -272,7 +274,7 @@ Say we want to the distance between our EPA sites and the nearest Gas Plant. We 
 
 ```{r Transform the dataset}
 #Transform the datasets to use UTM 17 N, WGS84
-EPAair.sf.utm <- st_transform(EPAair.sf,32617)
+EPAair.sf.utm <- st_transform(EPAair.sf,32617) ###converted to UTM, units in meters
 GasPlants.utm <- st_transform(GasPlants,32617)
 
 #Have a look at the coordinates associated with the geometries
